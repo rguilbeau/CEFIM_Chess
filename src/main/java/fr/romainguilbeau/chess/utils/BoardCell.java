@@ -1,8 +1,8 @@
 package fr.romainguilbeau.chess.utils;
 
 
+import fr.romainguilbeau.chess.models.chesspieces.BaseChessPiece;
 import fr.romainguilbeau.chess.models.game.ChessPosition;
-import fr.romainguilbeau.chess.models.pawns.BasePawn;
 import javafx.beans.binding.Bindings;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -44,7 +44,7 @@ public class BoardCell extends BorderPane {
     /**
      * The pawn on the cell
      */
-    private BasePawn pawn;
+    private BaseChessPiece pawn;
     /**
      * The cell position
      */
@@ -80,7 +80,7 @@ public class BoardCell extends BorderPane {
      *
      * @param pawn The pawn to put on the cell
      */
-    public void setPawn(BasePawn pawn) {
+    public void setChessPiece(BaseChessPiece pawn) {
         ImageView imageView = new ImageView(pawn.getResourceImage().toString());
         imageView.fitWidthProperty().bind(Bindings.min(this.widthProperty().subtract(35), this.widthProperty()));
         imageView.fitHeightProperty().bind(Bindings.min(this.widthProperty().subtract(35), this.widthProperty()));
@@ -94,7 +94,7 @@ public class BoardCell extends BorderPane {
      *
      * @return the pawn on the cell (empty if no pawn)
      */
-    public Optional<BasePawn> getPawn() {
+    public Optional<BaseChessPiece> getChessPiece() {
         return Optional.ofNullable(this.pawn);
     }
 
@@ -110,7 +110,7 @@ public class BoardCell extends BorderPane {
     /**
      * Remove the pawn that is on the cell
      */
-    public void removePawn() {
+    public void removeChessPiece() {
         this.pawn = null;
         this.setCenter(null);
     }

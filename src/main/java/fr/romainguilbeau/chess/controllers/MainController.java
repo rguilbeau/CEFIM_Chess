@@ -1,9 +1,9 @@
 package fr.romainguilbeau.chess.controllers;
 
+import fr.romainguilbeau.chess.models.chesspieces.BaseChessPiece;
 import fr.romainguilbeau.chess.models.game.ChessPosition;
 import fr.romainguilbeau.chess.models.game.Game;
 import fr.romainguilbeau.chess.models.game.Player;
-import fr.romainguilbeau.chess.models.pawns.BasePawn;
 import fr.romainguilbeau.chess.utils.BoardCell;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -86,11 +86,11 @@ public class MainController implements Initializable {
      * @param e mouse event
      */
     private void buttonNewGame(MouseEvent e) {
-        game = new Game(new Player("Toto", Game.PawnColor.BLACK), new Player("Toto", Game.PawnColor.WHITE));
+        game = new Game(new Player("Toto", Game.ChessColor.BLACK), new Player("Toto", Game.ChessColor.WHITE));
 
         ObservableList<Node> nodes = gridPaneChessBoard.getChildren();
-        for (BasePawn pawn : game.getPawns()) {
-            Optional<ChessPosition> optionalPos = pawn.getPosition();
+        for (BaseChessPiece chessPiece : game.getChessPieces()) {
+            Optional<ChessPosition> optionalPos = chessPiece.getPosition();
 
             if (optionalPos.isEmpty()) {
                 continue;
@@ -98,64 +98,64 @@ public class MainController implements Initializable {
 
             int index = (optionalPos.get().y * Game.BOARD_SIZE.x) + optionalPos.get().x;
             BoardCell boardCell = (BoardCell) nodes.get(index);
-            boardCell.setPawn(pawn);
+            boardCell.setChessPiece(chessPiece);
         }
     }
 
     /**
-     * Select or move a pawn when cell was clicked
+     * Select or move a chess piece when cell was clicked
      *
      * @param event Mouse event
      */
     private void onBoardCellClicked(MouseEvent event) {
         if (event.getSource() instanceof BoardCell) {
             if (BoardCell.getFocused().isEmpty()) {
-                onSelectPawn(event);
+                onSelectChessPiece(event);
             } else {
-                onMovePawn(event);
+                onMoveChessPiece(event);
             }
         }
     }
 
     /**
-     * Select a pawn
+     * Select a chess piece
      *
      * @param event Mouse event
      */
-    private void onSelectPawn(MouseEvent event) {
+    private void onSelectChessPiece(MouseEvent event) {
         if (BoardCell.getFocused().isEmpty()) {
             BoardCell boardCell = (BoardCell) event.getSource();
 
-            if (boardCell.getPawn().isPresent()) {
+            if (boardCell.getChessPiece().isPresent()) {
                 boardCell.setFocusedCell(true);
             }
         }
     }
 
     /**
-     * Move pawn
+     * Move chess piece
      *
      * @param event Mouse event
      */
-    private void onMovePawn(MouseEvent event) {
+    private void onMoveChessPiece(MouseEvent event) {
         Optional<BoardCell> optionalFocusedCell = BoardCell.getFocused();
-        if (optionalFocusedCell.isPresent() && optionalFocusedCell.get().getPawn().isPresent()) {
+        if (optionalFocusedCell.isPresent() && optionalFocusedCell.get().getChessPiece().isPresent()) {
 
             BoardCell boardCell = (BoardCell) event.getSource();
             BoardCell focusedCell = optionalFocusedCell.get();
-            BasePawn pawn = focusedCell.getPawn().get();
+            BaseChessPiece chessPiece = focusedCell.getChessPiece().get();
 
             ChessPosition newPosition = boardCell.getPosition();
 
             try {
-                pawn.move(newPosition);
+                chessPiece.move(newPosition);
 
-                focusedCell.removePawn();
+                focusedCell.removeChessPiece();
 
                 ObservableList<Node> nodes = gridPaneChessBoard.getChildren();
                 int newIndex = (newPosition.y * Game.BOARD_SIZE.x) + newPosition.x;
                 BoardCell newBoardCell = (BoardCell) nodes.get(newIndex);
-                newBoardCell.setPawn(pawn);
+                newBoardCell.setChessPiece(chessPiece);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
 

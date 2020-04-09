@@ -3,7 +3,7 @@ package fr.romainguilbeau.chess.models.game;
 import java.awt.*;
 
 /**
- * Position of chess pawn
+ * Position of chess piece
  */
 public class ChessPosition extends Point {
 

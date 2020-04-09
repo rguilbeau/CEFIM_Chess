@@ -1,4 +1,4 @@
-package fr.romainguilbeau.chess.models.pawns;
+package fr.romainguilbeau.chess.models.chesspieces;
 
 import fr.romainguilbeau.chess.models.game.ChessPosition;
 import fr.romainguilbeau.chess.models.game.Game;
@@ -9,37 +9,37 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 /**
- * Base of all chess pawn
+ * Base of all chess piece
  */
-public abstract class BasePawn {
+public abstract class BaseChessPiece {
 
     /**
-     * Chess position
+     * Chess piece position
      */
     private ChessPosition position;
     /**
-     * The chess pawns color
+     * The chess piece color
      */
-    private final Game.PawnColor pawnColor;
+    private final Game.ChessColor chessColor;
     /**
      * The current game
      */
     private final Game game;
 
     /**
-     * Create new chess pawns
+     * Create new chess piece
      *
-     * @param game      The current game
-     * @param position  The current position of this pawns
-     * @param pawnColor The color of this pawns
+     * @param game       The current game
+     * @param position   The current position of this piece
+     * @param chessColor The color of this piece
      * @throws InvalidParameterException If invalid arguments
      */
-    BasePawn(Game game, ChessPosition position, Game.PawnColor pawnColor) throws InvalidParameterException {
+    BaseChessPiece(Game game, ChessPosition position, Game.ChessColor chessColor) throws InvalidParameterException {
         if (position == null) {
             throw new NullPointerException();
         }
 
-        if (pawnColor == null) {
+        if (chessColor == null) {
             throw new NullPointerException();
         }
 
@@ -49,13 +49,13 @@ public abstract class BasePawn {
 
         this.game = game;
         this.position = position;
-        this.pawnColor = pawnColor;
+        this.chessColor = chessColor;
     }
 
     /**
-     * Get the chess pawns name
+     * Get the chess chess piece name
      *
-     * @return The chess pawns
+     * @return The chess chess piece
      */
     public abstract String getName();
 
@@ -67,9 +67,9 @@ public abstract class BasePawn {
     public abstract URL getResourceImage();
 
     /**
-     * Search all position that chess pawns can move
+     * Search all position that chess pieces can move
      *
-     * @return all position that chess pawns can move
+     * @return all position that chess pieces can move
      */
     public ArrayList<ChessPosition> findPossibleMove() {
         ArrayList<ChessPosition> validMoves = new ArrayList<>();
@@ -80,9 +80,9 @@ public abstract class BasePawn {
             }
         }
 
-        for (BasePawn pawns : this.game.getPawns(this.pawnColor)) {
-            if (pawns.getPosition().isPresent()) {
-                validMoves.remove(pawns.getPosition().get());
+        for (BaseChessPiece chessPieces : this.game.getChessPieces(this.chessColor)) {
+            if (chessPieces.getPosition().isPresent()) {
+                validMoves.remove(chessPieces.getPosition().get());
             }
         }
 
@@ -90,10 +90,10 @@ public abstract class BasePawn {
     }
 
     /**
-     * Return the current position of this chess pawns.
-     * If optional is empty, it means that this chess pawns was eaten
+     * Return the current position of this chess pieces.
+     * If optional is empty, it means that this chess pieces was eaten
      *
-     * @return the current position of this chess pawns
+     * @return the current position of this chess pieces
      */
     public Optional<ChessPosition> getPosition() {
         if (position == null) {
@@ -104,7 +104,7 @@ public abstract class BasePawn {
     }
 
     /**
-     * Move the chess pawns
+     * Move the chess pieces
      *
      * @param chessPosition The new position
      * @throws Exception If invalid position
@@ -115,21 +115,21 @@ public abstract class BasePawn {
         }
 
         if (this.position == null) {
-            throw new Exception("Unable to move dead pawn");
+            throw new Exception("Unable to move dead chess pieces");
         }
 
         if (!this.findPossibleMove().contains(chessPosition)) {
             throw new Exception(String.format("Unable to move to %d;%d position", chessPosition.x, chessPosition.y));
         }
 
-        Game.PawnColor opposingColor = Game.PawnColor.BLACK;
-        if (this.pawnColor.equals(Game.PawnColor.BLACK)) {
-            opposingColor = Game.PawnColor.WHITE;
+        Game.ChessColor opposingColor = Game.ChessColor.BLACK;
+        if (this.chessColor.equals(Game.ChessColor.BLACK)) {
+            opposingColor = Game.ChessColor.WHITE;
         }
 
-        for (BasePawn pawn : this.game.getPawns(opposingColor)) {
-            if (pawn.getPosition().isPresent() && pawn.getPosition().get().equals(chessPosition)) {
-                pawn.getsEaten();
+        for (BaseChessPiece chessPiece : this.game.getChessPieces(opposingColor)) {
+            if (chessPiece.getPosition().isPresent() && chessPiece.getPosition().get().equals(chessPosition)) {
+                chessPiece.getsEaten();
             }
         }
 
@@ -137,7 +137,7 @@ public abstract class BasePawn {
     }
 
     /**
-     * Put this chess pawn in eaten state
+     * Put this chess piece in eaten state
      * (Optional getPosition() return empty)
      */
     public void getsEaten() {
@@ -146,12 +146,12 @@ public abstract class BasePawn {
     }
 
     /**
-     * Get the chess pawn color
+     * Get the chess piece color
      *
-     * @return he chess pawn color
+     * @return he chess piece color
      */
-    public Game.PawnColor getPawnColor() {
-        return this.pawnColor;
+    public Game.ChessColor getChessColor() {
+        return this.chessColor;
     }
 
 }

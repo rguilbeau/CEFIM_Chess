@@ -12,7 +12,7 @@ public class Player {
     /**
      * Chess color
      */
-    private final Game.PawnColor color;
+    private final Game.ChessColor color;
 
     /**
      * Create new player
@@ -20,7 +20,7 @@ public class Player {
      * @param playerName The planer name
      * @param color      The chess colot
      */
-    public Player(String playerName, Game.PawnColor color) {
+    public Player(String playerName, Game.ChessColor color) {
         if (playerName == null) {
             throw new NullPointerException();
         }
@@ -47,7 +47,7 @@ public class Player {
      *
      * @return The player color
      */
-    public Game.PawnColor getColor() {
+    public Game.ChessColor getColor() {
         return color;
     }
 }
