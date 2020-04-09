@@ -1,0 +1,9 @@
+.focusedcell {
+    -fx-border-color: #27bd10;
+    -fx-border-width: 3;
+    -fx-border-radius: 3;
+}
+
+.darkcell {
+    -fx-background-color: #DDDDDD;
+}
