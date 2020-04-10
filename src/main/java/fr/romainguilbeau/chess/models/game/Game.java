@@ -96,7 +96,7 @@ public class Game {
      * @return All player 2 chess chess pieces
      */
     public BaseChessPiece[] getChessPieces() {
-        return Stream.concat(Arrays.stream(whiteChessPieces.clone()), Arrays.stream(blackChessPieces.clone()))
+        return Stream.concat(Arrays.stream(whiteChessPieces), Arrays.stream(blackChessPieces))
                 .toArray(BaseChessPiece[]::new);
     }
 
