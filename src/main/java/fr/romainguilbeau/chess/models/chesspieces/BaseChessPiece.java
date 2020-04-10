@@ -2,6 +2,8 @@ package fr.romainguilbeau.chess.models.chesspieces;
 
 import fr.romainguilbeau.chess.models.game.ChessPosition;
 import fr.romainguilbeau.chess.models.game.Game;
+import fr.romainguilbeau.chess.models.listeners.ChessPieceEatenListener;
+import fr.romainguilbeau.chess.models.listeners.ChessPieceMoveListener;
 
 import java.net.URL;
 import java.security.InvalidParameterException;
@@ -11,7 +13,7 @@ import java.util.Optional;
 /**
  * Base of all chess piece
  */
-public abstract class BaseChessPiece {
+public abstract class BaseChessPiece implements Cloneable {
 
     /**
      * Chess piece position
@@ -25,6 +27,15 @@ public abstract class BaseChessPiece {
      * The current game
      */
     private final Game game;
+    /**
+     * All chess move listeners
+     */
+    private ArrayList<ChessPieceMoveListener> chessPieceMoveListeners;
+    /**
+     * All chess move listeners
+     */
+    private ArrayList<ChessPieceEatenListener> chessPieceEatenListeners;
+
 
     /**
      * Create new chess piece
@@ -50,6 +61,8 @@ public abstract class BaseChessPiece {
         this.game = game;
         this.position = position;
         this.chessColor = chessColor;
+        this.chessPieceMoveListeners = new ArrayList<>();
+        this.chessPieceEatenListeners = new ArrayList<>();
     }
 
     /**
@@ -67,26 +80,31 @@ public abstract class BaseChessPiece {
     public abstract URL getResourceImage();
 
     /**
+     * Find all the positions that the chess piece would normally do (regardless of other chess pieces)
+     *
+     * @return all the positions that the chess piece would normally do
+     */
+    protected abstract ArrayList<ChessPosition> findChessPieceMove();
+
+    /**
      * Search all position that chess pieces can move
      *
      * @return all position that chess pieces can move
      */
-    public ArrayList<ChessPosition> findPossibleMove() {
-        ArrayList<ChessPosition> validMoves = new ArrayList<>();
+    public ArrayList<ChessPosition> findValidMove() {
+        ArrayList<ChessPosition> validMove = new ArrayList<>();
 
-        for (int x = 0; x < Game.BOARD_SIZE.x; x++) {
-            for (int y = 0; y < Game.BOARD_SIZE.y; y++) {
-                validMoves.add(new ChessPosition(x, y));
+        if (game.getColorTurn().equals(getChessColor())) {
+            ArrayList<ChessPosition> possibleMove = findChessPieceMove();
+
+            for (BaseChessPiece chessPieces : this.game.getChessPieces(this.chessColor)) {
+                if (chessPieces.getPosition().isPresent()) {
+                    possibleMove.remove(chessPieces.getPosition().get());
+                }
             }
+            validMove = (ArrayList<ChessPosition>) possibleMove.clone();
         }
-
-        for (BaseChessPiece chessPieces : this.game.getChessPieces(this.chessColor)) {
-            if (chessPieces.getPosition().isPresent()) {
-                validMoves.remove(chessPieces.getPosition().get());
-            }
-        }
-
-        return (ArrayList<ChessPosition>) validMoves.clone();
+        return validMove;
     }
 
     /**
@@ -110,15 +128,23 @@ public abstract class BaseChessPiece {
      * @throws Exception If invalid position
      */
     public void move(ChessPosition chessPosition) throws Exception {
+        if (!game.getGameStatus().equals(Game.GameStatus.IN_GAME)) {
+            throw new Exception("Not \"in game\"");
+        }
+
+        if (!game.getColorTurn().equals(getChessColor())) {
+            throw new Exception("It's not your turn !");
+        }
+
         if (chessPosition == null) {
             throw new NullPointerException();
         }
 
-        if (this.position == null) {
+        if (this.getPosition().isEmpty()) {
             throw new Exception("Unable to move dead chess pieces");
         }
 
-        if (!this.findPossibleMove().contains(chessPosition)) {
+        if (!this.findValidMove().contains(chessPosition)) {
             throw new Exception(String.format("Unable to move to %d;%d position", chessPosition.x, chessPosition.y));
         }
 
@@ -127,22 +153,32 @@ public abstract class BaseChessPiece {
             opposingColor = Game.ChessColor.WHITE;
         }
 
+        BaseChessPiece chessEaten;
         for (BaseChessPiece chessPiece : this.game.getChessPieces(opposingColor)) {
             if (chessPiece.getPosition().isPresent() && chessPiece.getPosition().get().equals(chessPosition)) {
-                chessPiece.getsEaten();
+                chessEaten = chessPiece;
+                chessEaten.eaten();
             }
         }
 
+        ChessPosition previousPosition = (ChessPosition) this.position.clone();
         this.position = (ChessPosition) chessPosition.clone();
+
+        for (ChessPieceMoveListener chessPieceMoveListener : chessPieceMoveListeners) {
+            chessPieceMoveListener.onChessPieceMove(this);
+        }
     }
 
     /**
-     * Put this chess piece in eaten state
+     * Put this chess piece in eaten state and invoke all listeners
      * (Optional getPosition() return empty)
      */
-    public void getsEaten() {
-        System.out.println("Eated !!");
+    public void eaten() {
         this.position = null;
+
+        for (ChessPieceEatenListener chessPieceEatenListener : chessPieceEatenListeners) {
+            chessPieceEatenListener.onChessPieceEaten(this);
+        }
     }
 
     /**
@@ -154,4 +190,38 @@ public abstract class BaseChessPiece {
         return this.chessColor;
     }
 
+    /**
+     * Add chess piece move listener
+     *
+     * @param chessPieceMoveListener chess piece move listener
+     */
+    public void addChessPieceMoveListener(ChessPieceMoveListener chessPieceMoveListener) {
+        chessPieceMoveListeners.add(chessPieceMoveListener);
+    }
+
+    /**
+     * Add chess piece eaten listener
+     *
+     * @param chessPieceEatenListener chess piece eaten listener
+     */
+    public void addChessPieceEatenListener(ChessPieceEatenListener chessPieceEatenListener) {
+        chessPieceEatenListeners.add(chessPieceEatenListener);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object clone() {
+        BaseChessPiece chessPiece = null;
+        try {
+            chessPiece = (BaseChessPiece) super.clone();
+            if (chessPiece.position != null) {
+                chessPiece.position = (ChessPosition) position.clone();
+            }
+        } catch (CloneNotSupportedException ex) {
+            ex.printStackTrace(System.err);
+        }
+        return chessPiece;
+    }
 }

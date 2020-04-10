@@ -22,6 +22,10 @@ public class BoardCell extends BorderPane {
      * Classname for focused cells
      */
     private static final String CSS_FOCUSED_CELL = "focusedcell";
+    /**
+     * Classname fot highlight cell
+     */
+    private static final String CSS_HIGHLIGHT_CELL = "highlightcell";
 
     //////// STATIC - focused cell
 
@@ -54,24 +58,30 @@ public class BoardCell extends BorderPane {
      * Create new cell on the game board
      *
      * @param position The cell position
+     * @param isDark   true if cell is dark
      */
-    public BoardCell(ChessPosition position) {
+    public BoardCell(ChessPosition position, boolean isDark) {
         if (position == null) {
             throw new NullPointerException();
         }
+
+        if (isDark) {
+            getStyleClass().add(CSS_DARK_CELL);
+        }
+
         this.position = position;
     }
 
     /**
-     * Set this cell dark
+     * Highlight this cell
      *
-     * @param dark true for set dark, else false
+     * @param highlight true for highlight
      */
-    public void setDark(boolean dark) {
-        if (dark) {
-            getStyleClass().add(CSS_DARK_CELL);
+    public void setHighlight(boolean highlight) {
+        if (highlight) {
+            getStyleClass().add(CSS_HIGHLIGHT_CELL);
         } else {
-            getStyleClass().remove(CSS_DARK_CELL);
+            getStyleClass().remove(CSS_HIGHLIGHT_CELL);
         }
     }
 
@@ -131,6 +141,5 @@ public class BoardCell extends BorderPane {
             this.getStyleClass().remove(CSS_FOCUSED_CELL);
             focused = null;
         }
-
     }
 }

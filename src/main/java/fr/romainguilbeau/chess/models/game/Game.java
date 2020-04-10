@@ -2,8 +2,7 @@ package fr.romainguilbeau.chess.models.game;
 
 import fr.romainguilbeau.chess.models.chesspieces.*;
 
-import java.awt.*;
-import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -13,51 +12,38 @@ import java.util.stream.Stream;
 public class Game {
 
     /**
-     * Chess board size
-     */
-    public static final Point BOARD_SIZE = new Point(8, 8);
-    /**
-     * Player 1
-     */
-    private final Player player1;
-    /**
-     * Player 2
-     */
-    private final Player player2;
-    /**
      * The current player that could playing
      */
-    private Player playerTurn;
+    private ChessColor colorTurn;
     /**
      * All player 1 's chess pieces
      */
-    private final BaseChessPiece[] player1ChessPieces;
+    private BaseChessPiece[] whiteChessPieces;
     /**
      * All player 2 's chess pieces
      */
-    private final BaseChessPiece[] player2ChessPieces;
+    private BaseChessPiece[] blackChessPieces;
+    /**
+     * All game states (for undo)
+     */
+    private ArrayList<GameState> gameStates;
+    /**
+     * Current game status
+     */
+    private GameStatus gameStatus;
 
     /**
      * Create new game
-     *
-     * @param player1 The player one
-     * @param player2 The player two
      */
-    public Game(Player player1, Player player2) {
-        if (player1 == null || player2 == null) {
-            throw new NullPointerException();
-        }
+    public Game() {
+        this.colorTurn = ChessColor.WHITE;
+        this.whiteChessPieces = new BaseChessPiece[16];
+        this.blackChessPieces = new BaseChessPiece[16];
+        this.gameStates = new ArrayList<>();
+        this.gameStatus = GameStatus.IN_GAME;
 
-        if (player1.getColor().equals(player2.getColor())) {
-            throw new InvalidParameterException("Player 2 and player can not have same color");
-        }
-
-        this.player1 = player1;
-        this.player2 = player2;
-        this.playerTurn = player1;
-        player1ChessPieces = new BaseChessPiece[16];
-        player2ChessPieces = new BaseChessPiece[16];
         populateBoard();
+        gameStates.add(new GameState(whiteChessPieces, blackChessPieces, colorTurn));
     }
 
     /**
@@ -66,9 +52,9 @@ public class Game {
     private void populateBoard() {
         for (ChessColor color : ChessColor.values()) {
 
-            BaseChessPiece[] chessPieces = player1ChessPieces;
-            if (color.equals(player2.getColor())) {
-                chessPieces = player2ChessPieces;
+            BaseChessPiece[] chessPieces = whiteChessPieces;
+            if (color.equals(ChessColor.BLACK)) {
+                chessPieces = blackChessPieces;
             }
 
             int chessPieceY = color == ChessColor.BLACK ? 0 : 7;
@@ -83,19 +69,25 @@ public class Game {
             chessPieces[6] = new Knight(this, new ChessPosition(6, chessPieceY), color);
             chessPieces[7] = new Rook(this, new ChessPosition(7, chessPieceY), color);
 
-            for (int x = 0; x < BOARD_SIZE.x; x++) {
+            for (int x = 0; x < ChessPosition.BOARD_SIZE.x; x++) {
                 chessPieces[8 + x] = new Pawn(this, new ChessPosition(x, pawnY), color);
             }
+        }
+
+        // Add move listener
+        for (BaseChessPiece chessPiece : this.getChessPieces()) {
+            chessPiece.addChessPieceMoveListener(this::onChessPieceMoved);
+            chessPiece.addChessPieceEatenListener(this::onChessPieceEaten);
         }
     }
 
     /**
-     * Get the current player that could playing
+     * Get the player whose turn it is
      *
-     * @return the current player that could playing
+     * @return Get the player whose turn it is
      */
-    public Player getPlayerTurn() {
-        return this.playerTurn;
+    public ChessColor getColorTurn() {
+        return this.colorTurn;
     }
 
     /**
@@ -104,7 +96,7 @@ public class Game {
      * @return All player 2 chess chess pieces
      */
     public BaseChessPiece[] getChessPieces() {
-        return Stream.concat(Arrays.stream(player1ChessPieces), Arrays.stream(player2ChessPieces))
+        return Stream.concat(Arrays.stream(whiteChessPieces.clone()), Arrays.stream(blackChessPieces.clone()))
                 .toArray(BaseChessPiece[]::new);
     }
 
@@ -115,11 +107,64 @@ public class Game {
      * @return All chess pieces by color
      */
     public BaseChessPiece[] getChessPieces(ChessColor color) {
-        if (color.equals(player1.getColor())) {
-            return player1ChessPieces.clone();
+        if (color.equals(ChessColor.WHITE)) {
+            return whiteChessPieces.clone();
         } else {
-            return player2ChessPieces.clone();
+            return blackChessPieces.clone();
         }
+    }
+
+    /**
+     * Change the player turn
+     * Invoked when chess move
+     *
+     * @param chessPiece moved chess piece
+     */
+    public void onChessPieceMoved(BaseChessPiece chessPiece) {
+        if (colorTurn.equals(ChessColor.WHITE)) {
+            colorTurn = ChessColor.BLACK;
+        } else {
+            colorTurn = ChessColor.WHITE;
+        }
+        gameStates.add(new GameState(whiteChessPieces, blackChessPieces, colorTurn));
+    }
+
+    /**
+     * Piece is eaten, check if win
+     *
+     * @param chessPiece Eaten chess piece
+     */
+    public void onChessPieceEaten(BaseChessPiece chessPiece) {
+        if (chessPiece instanceof King) {
+            if (chessPiece.getChessColor().equals(ChessColor.WHITE)) {
+                gameStatus = GameStatus.BLACK_WIN;
+            } else {
+                gameStatus = GameStatus.WHITE_WIN;
+            }
+        }
+    }
+
+    /**
+     * Undo
+     */
+    public void undo() {
+        if (gameStates.size() > 1) {
+            gameStates.remove(gameStates.size() - 1);
+
+            GameState gameState = gameStates.get(gameStates.size() - 1);
+            this.colorTurn = gameState.getColorTurn();
+            this.whiteChessPieces = gameState.getWhiteChessPieces();
+            this.blackChessPieces = gameState.getBlackChessPieces();
+        }
+    }
+
+    /**
+     * Get the current game status
+     *
+     * @return The current game status
+     */
+    public GameStatus getGameStatus() {
+        return gameStatus;
     }
 
     /**
@@ -127,5 +172,12 @@ public class Game {
      */
     public enum ChessColor {
         BLACK, WHITE
+    }
+
+    /**
+     * List winner
+     */
+    public enum GameStatus {
+        IN_GAME, WHITE_WIN, BLACK_WIN
     }
 }

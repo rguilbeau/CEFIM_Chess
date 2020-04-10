@@ -7,3 +7,16 @@
 .darkcell {
     -fx-background-color: #DDDDDD;
 }
+
+.highlightcell.darkcell {
+    -fx-background-color: #90bd96;
+}
+
+.highlightcell {
+    -fx-background-color: #98c59d;
+}
+
+.glyph-icon:hover {
+    -fx-cursor: hand;
+    -fx-fill: black;
+}

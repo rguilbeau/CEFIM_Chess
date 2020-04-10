@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 <AnchorPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
@@ -52,8 +51,8 @@
                 <Button fx:id="buttonQuit" layoutX="30.0" layoutY="313.0" mnemonicParsing="false" prefHeight="25.0"
                         prefWidth="143.0" text="Quitter" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="30.0"
                         AnchorPane.rightAnchor="30.0"/>
-                <Button fx:id="buttonNewGame" layoutX="74.0" layoutY="272.0" mnemonicParsing="false"
-                        text="Nouvelle partie" AnchorPane.bottomAnchor="65.0" AnchorPane.leftAnchor="30.0"
+                <Button fx:id="buttonNewGame" layoutX="30.0" layoutY="275.0" mnemonicParsing="false"
+                        text="Nouvelle partie" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="30.0"
                         AnchorPane.rightAnchor="30.0"/>
                 <Label layoutX="79.0" layoutY="40.0" text="Top échec" textAlignment="CENTER"
                        AnchorPane.leftAnchor="45.0" AnchorPane.rightAnchor="45.0" AnchorPane.topAnchor="30.0">
@@ -61,11 +60,15 @@
                         <Font size="22.0"/>
                     </font>
                 </Label>
-                <Label layoutX="30.0" layoutY="74.0" text="Au tours des Blanc" textAlignment="CENTER">
+                <Label fx:id="labelPlayerTurn" layoutX="30.0" layoutY="74.0" text="Au tours des Blanc"
+                       textAlignment="CENTER">
                     <font>
                         <Font size="17.0"/>
                     </font>
                 </Label>
+                <Button fx:id="buttonUndo" layoutX="30.0" layoutY="310.0" mnemonicParsing="false" prefHeight="25.0"
+                        prefWidth="140.0" text="Annuler" AnchorPane.bottomAnchor="65.0" AnchorPane.leftAnchor="30.0"
+                        AnchorPane.rightAnchor="30.0"/>
             </children>
         </AnchorPane>
     </children>
