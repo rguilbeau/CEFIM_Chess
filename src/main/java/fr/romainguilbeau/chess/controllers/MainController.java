@@ -152,7 +152,7 @@ public class MainController implements Initializable {
                 && boardCell.getChessPiece().get().getChessColor().equals(game.getColorTurn())) {
 
             BaseChessPiece chessPiece = boardCell.getChessPiece().get();
-            ArrayList<Pos> validPositions = chessPiece.findValidMove();
+            ArrayList<Pos> validPositions = chessPiece.findValidMoves(boardCell.getPosition());
 
             for (Pos validPosition : validPositions) {
                 BoardCell newBoardCell = findBoardCellAtPosition(validPosition);

@@ -55,6 +55,37 @@ public class Pos {
     }
 
     /**
+     * Increment position fot a direction
+     *
+     * @param direction The wanted direction
+     * @return The new position
+     * @throws IndexOutOfBoundsException if invalid direction (out of board)
+     */
+    public Pos incrementPos(Direction direction) throws IndexOutOfBoundsException {
+        Pos newPos = this;
+        switch (direction) {
+            case NORTH:
+                return new Pos(newPos.getX(), newPos.getY() - 1);
+            case NORTH_EAST:
+                return new Pos(newPos.getX() + 1, newPos.getY() - 1);
+            case EAST:
+                return new Pos(newPos.getX() + 1, newPos.getY());
+            case SOUTH_EAST:
+                return new Pos(newPos.getX() + 1, newPos.getY() + 1);
+            case SOUTH:
+                return new Pos(newPos.getX(), newPos.getY() + 1);
+            case SOUTH_WEST:
+                return new Pos(newPos.getX() - 1, newPos.getY() + 1);
+            case WEST:
+                return new Pos(newPos.getX() - 1, newPos.getY());
+            case NORTH_WEST:
+                return new Pos(newPos.getX() - 1, newPos.getY() - 1);
+            default:
+                throw new IndexOutOfBoundsException();
+        }
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -72,5 +103,12 @@ public class Pos {
     @Override
     public int hashCode() {
         return Objects.hash(x, y);
+    }
+
+    /**
+     * All possible directions
+     */
+    public enum Direction {
+        NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST
     }
 }

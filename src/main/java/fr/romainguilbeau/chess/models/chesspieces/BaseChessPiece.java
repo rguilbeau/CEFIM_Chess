@@ -7,6 +7,7 @@ import java.net.URL;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Base of all chess piece
@@ -19,7 +20,7 @@ public abstract class BaseChessPiece {
     /**
      * The current game
      */
-    private final Game game;
+    protected Game game;
 
     /**
      * Create new chess piece
@@ -58,20 +59,54 @@ public abstract class BaseChessPiece {
     /**
      * Find all the positions that the chess piece would normally do (regardless of other chess pieces)
      *
+     * @param currentPos
      * @return all the positions that the chess piece would normally do
      */
-    protected abstract ArrayList<Pos> findChessPieceMove();
+    protected ArrayList<Pos> findChessPieceMoves(Pos currentPos) {
+        ArrayList<Pos> validMoves = new ArrayList<>();
+
+        for (Pos.Direction direction : getAvailableDirections()) {
+            Optional<Integer> limitMove = getLimitMove(currentPos);
+
+            Pos searchPos = currentPos;
+            boolean availablePosition = true;
+            int moves = 0;
+
+            do {
+                try {
+                    searchPos = searchPos.incrementPos(direction);
+                    moves++;
+                    if (game.getChessPieces().containsKey(searchPos)) {
+                        availablePosition = false;
+                        if (!game.getChessPieces().get(searchPos).getChessColor().equals(getChessColor())) {
+                            validMoves.add(searchPos);
+                        }
+                    } else {
+                        validMoves.add(searchPos);
+                    }
+
+                    if (limitMove.isPresent() && limitMove.get() <= moves) {
+                        availablePosition = false;
+                    }
+                } catch (IndexOutOfBoundsException ex) {
+                    availablePosition = false;
+                }
+            } while (availablePosition);
+        }
+        return validMoves;
+    }
 
     /**
      * Search all position that chess pieces can move
      *
+     * @param currentPos
      * @return all position that chess pieces can move
      */
-    public ArrayList<Pos> findValidMove() {
+    public ArrayList<Pos> findValidMoves(Pos currentPos) {
         ArrayList<Pos> validMove = new ArrayList<>();
 
         if (game.getColorTurn().equals(getChessColor())) {
-            ArrayList<Pos> possibleMoves = findChessPieceMove();
+            ArrayList<Pos> possibleMoves = findChessPieceMoves(currentPos);
 
             for (Map.Entry<Pos, BaseChessPiece> entrySet : game.getChessPieces(this.chessColor).entrySet()) {
                 possibleMoves.remove(entrySet.getKey());
@@ -90,23 +125,42 @@ public abstract class BaseChessPiece {
      */
     public boolean canMove(Pos from, Pos to) {
         if (!game.getGameStatus().equals(Game.GameStatus.IN_GAME)) {
+            System.err.println("Game is not in game");
             return false;
         }
 
         if (!game.getColorTurn().equals(getChessColor())) {
+            System.err.println("It's not your turn");
             return false;
         }
 
         if (from == null || to == null) {
+            System.err.println("Bad from or to values");
             return false;
         }
 
-        if (!this.findValidMove().contains(to)) {
+        if (!this.findValidMoves(from).contains(to)) {
+            System.err.println("Not valid position");
             return false;
         }
 
         return true;
     }
+
+    /**
+     * Get all chess piece available directions
+     *
+     * @return all chess piece available directions
+     */
+    protected abstract Pos.Direction[] getAvailableDirections();
+
+    /**
+     * Get cell number limit move (empty optional if not limit)
+     *
+     * @param currentPosition
+     * @return Get cell number limit move
+     */
+    protected abstract Optional<Integer> getLimitMove(Pos currentPosition);
 
     /**
      * Get the chess piece color

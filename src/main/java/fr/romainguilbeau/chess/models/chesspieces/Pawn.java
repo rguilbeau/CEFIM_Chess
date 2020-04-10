@@ -5,15 +5,21 @@ import fr.romainguilbeau.chess.models.game.Pos;
 
 import java.net.URL;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
+import java.util.Optional;
 
 public class Pawn extends BaseChessPiece {
 
     /**
+     * The first position
+     */
+    private Pos initialPosition;
+
+    /**
      * {@inheritDoc}
      */
-    public Pawn(Game game, Game.ChessColor chessColor) throws InvalidParameterException {
+    public Pawn(Game game, Game.ChessColor chessColor, Pos initialPosition) throws InvalidParameterException {
         super(game, chessColor);
+        this.initialPosition = initialPosition;
     }
 
     /**
@@ -36,14 +42,23 @@ public class Pawn extends BaseChessPiece {
      * {@inheritDoc}
      */
     @Override
-    protected ArrayList<Pos> findChessPieceMove() {
-        ArrayList<Pos> validMoves = new ArrayList<>();
-
-        for (int x = 0; x < Pos.BOARD_SIZE.x; x++) {
-            for (int y = 0; y < Pos.BOARD_SIZE.y; y++) {
-                validMoves.add(new Pos(x, y));
-            }
+    protected Pos.Direction[] getAvailableDirections() {
+        if (getChessColor().equals(Game.ChessColor.BLACK)) {
+            return new Pos.Direction[]{Pos.Direction.SOUTH};
+        } else {
+            return new Pos.Direction[]{Pos.Direction.NORTH};
         }
-        return validMoves;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Optional<Integer> getLimitMove(Pos currentPosition) {
+        if (currentPosition.equals(initialPosition)) {
+            return Optional.of(2);
+        } else {
+            return Optional.of(1);
+        }
     }
 }

@@ -70,7 +70,7 @@ public class Game {
             chessPieces.put(new Pos(7, chessPieceY), new Rook(this, color));
 
             for (int x = 0; x < Pos.BOARD_SIZE.x; x++) {
-                chessPieces.put(new Pos(x, pawnY), new Pawn(this, color));
+                chessPieces.put(new Pos(x, pawnY), new Pawn(this, color, new Pos(x, pawnY)));
             }
         }
     }
@@ -134,7 +134,7 @@ public class Game {
         getChessPieces(opposing).remove(nextPosition);
         playerChessPieces.put(nextPosition, chessPiece);
 
-        if (this.colorTurn.equals(ChessColor.WHITE)) {
+        if (chessPiece.getChessColor().equals(ChessColor.WHITE)) {
             this.colorTurn = ChessColor.BLACK;
         } else {
             this.colorTurn = ChessColor.WHITE;

@@ -5,7 +5,7 @@ import fr.romainguilbeau.chess.models.game.Pos;
 
 import java.net.URL;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * Bishop pawn
@@ -39,15 +39,17 @@ public class Bishop extends BaseChessPiece {
      * {@inheritDoc}
      */
     @Override
-    protected ArrayList<Pos> findChessPieceMove() {
-        ArrayList<Pos> validMoves = new ArrayList<>();
-
-        for (int x = 0; x < Pos.BOARD_SIZE.x; x++) {
-            for (int y = 0; y < Pos.BOARD_SIZE.y; y++) {
-                validMoves.add(new Pos(x, y));
-            }
-        }
-        return validMoves;
+    protected Pos.Direction[] getAvailableDirections() {
+        return new Pos.Direction[]{Pos.Direction.NORTH_EAST, Pos.Direction.SOUTH_EAST, Pos.Direction.SOUTH_WEST, Pos.Direction.NORTH_WEST};
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param currentPosition
+     */
+    @Override
+    protected Optional<Integer> getLimitMove(Pos currentPosition) {
+        return Optional.empty();
+    }
 }

@@ -5,7 +5,7 @@ import fr.romainguilbeau.chess.models.game.Pos;
 
 import java.net.URL;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
+import java.util.Optional;
 
 public class Queen extends BaseChessPiece {
 
@@ -36,14 +36,17 @@ public class Queen extends BaseChessPiece {
      * {@inheritDoc}
      */
     @Override
-    protected ArrayList<Pos> findChessPieceMove() {
-        ArrayList<Pos> validMoves = new ArrayList<>();
+    protected Pos.Direction[] getAvailableDirections() {
+        return Pos.Direction.values();
+    }
 
-        for (int x = 0; x < Pos.BOARD_SIZE.x; x++) {
-            for (int y = 0; y < Pos.BOARD_SIZE.y; y++) {
-                validMoves.add(new Pos(x, y));
-            }
-        }
-        return validMoves;
+    /**
+     * {@inheritDoc}
+     *
+     * @param currentPosition
+     */
+    @Override
+    protected Optional<Integer> getLimitMove(Pos currentPosition) {
+        return Optional.empty();
     }
 }

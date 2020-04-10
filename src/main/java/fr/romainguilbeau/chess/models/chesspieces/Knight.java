@@ -6,6 +6,7 @@ import fr.romainguilbeau.chess.models.game.Pos;
 import java.net.URL;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Knight extends BaseChessPiece {
 
@@ -34,16 +35,46 @@ public class Knight extends BaseChessPiece {
 
     /**
      * {@inheritDoc}
+     *
+     * @param currentPos
      */
     @Override
-    protected ArrayList<Pos> findChessPieceMove() {
+    protected ArrayList<Pos> findChessPieceMoves(Pos currentPos) {
         ArrayList<Pos> validMoves = new ArrayList<>();
 
-        for (int x = 0; x < Pos.BOARD_SIZE.x; x++) {
-            for (int y = 0; y < Pos.BOARD_SIZE.y; y++) {
+        int[] xs = {+2, +2, -2, -2, -1, -1, +1, +1};
+        int[] ys = {-1, +1, -1, +1, +2, -2, +2, +2};
+
+        for (int i = 0; i < xs.length; i++) {
+            try {
+                int x = currentPos.getX() + xs[i];
+                int y = currentPos.getY() + ys[i];
                 validMoves.add(new Pos(x, y));
+            } catch (IndexOutOfBoundsException ignored) {
             }
         }
         return validMoves;
     }
+
+    /**
+     * Not specifics directions, really specific moves
+     *
+     * @return
+     */
+    @Override
+    protected Pos.Direction[] getAvailableDirections() {
+        return new Pos.Direction[0];
+    }
+
+    /**
+     * Not specifics limit, really specific moves
+     *
+     * @param currentPosition
+     * @return
+     */
+    @Override
+    protected Optional<Integer> getLimitMove(Pos currentPosition) {
+        return Optional.empty();
+    }
+
 }
