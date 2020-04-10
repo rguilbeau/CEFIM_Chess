@@ -3,8 +3,8 @@ package fr.romainguilbeau.chess.models.game;
 import fr.romainguilbeau.chess.models.chesspieces.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Chess game
@@ -18,11 +18,11 @@ public class Game {
     /**
      * All player 1 's chess pieces
      */
-    private BaseChessPiece[] whiteChessPieces;
+    private HashMap<Pos, BaseChessPiece> whiteChessPieces;
     /**
      * All player 2 's chess pieces
      */
-    private BaseChessPiece[] blackChessPieces;
+    private HashMap<Pos, BaseChessPiece> blackChessPieces;
     /**
      * All game states (for undo)
      */
@@ -37,8 +37,8 @@ public class Game {
      */
     public Game() {
         this.colorTurn = ChessColor.WHITE;
-        this.whiteChessPieces = new BaseChessPiece[16];
-        this.blackChessPieces = new BaseChessPiece[16];
+        this.whiteChessPieces = new HashMap<>();
+        this.blackChessPieces = new HashMap<>();
         this.gameStates = new ArrayList<>();
         this.gameStatus = GameStatus.IN_GAME;
 
@@ -52,7 +52,7 @@ public class Game {
     private void populateBoard() {
         for (ChessColor color : ChessColor.values()) {
 
-            BaseChessPiece[] chessPieces = whiteChessPieces;
+            HashMap<Pos, BaseChessPiece> chessPieces = whiteChessPieces;
             if (color.equals(ChessColor.BLACK)) {
                 chessPieces = blackChessPieces;
             }
@@ -60,24 +60,18 @@ public class Game {
             int chessPieceY = color == ChessColor.BLACK ? 0 : 7;
             int pawnY = color == ChessColor.BLACK ? 1 : 6;
 
-            chessPieces[0] = new Rook(this, new ChessPosition(0, chessPieceY), color);
-            chessPieces[1] = new Knight(this, new ChessPosition(1, chessPieceY), color);
-            chessPieces[2] = new Bishop(this, new ChessPosition(2, chessPieceY), color);
-            chessPieces[3] = new King(this, new ChessPosition(3, chessPieceY), color);
-            chessPieces[4] = new Queen(this, new ChessPosition(4, chessPieceY), color);
-            chessPieces[5] = new Bishop(this, new ChessPosition(5, chessPieceY), color);
-            chessPieces[6] = new Knight(this, new ChessPosition(6, chessPieceY), color);
-            chessPieces[7] = new Rook(this, new ChessPosition(7, chessPieceY), color);
+            chessPieces.put(new Pos(0, chessPieceY), new Rook(this, color));
+            chessPieces.put(new Pos(1, chessPieceY), new Knight(this, color));
+            chessPieces.put(new Pos(2, chessPieceY), new Bishop(this, color));
+            chessPieces.put(new Pos(3, chessPieceY), new King(this, color));
+            chessPieces.put(new Pos(4, chessPieceY), new Queen(this, color));
+            chessPieces.put(new Pos(5, chessPieceY), new Bishop(this, color));
+            chessPieces.put(new Pos(6, chessPieceY), new Knight(this, color));
+            chessPieces.put(new Pos(7, chessPieceY), new Rook(this, color));
 
-            for (int x = 0; x < ChessPosition.BOARD_SIZE.x; x++) {
-                chessPieces[8 + x] = new Pawn(this, new ChessPosition(x, pawnY), color);
+            for (int x = 0; x < Pos.BOARD_SIZE.x; x++) {
+                chessPieces.put(new Pos(x, pawnY), new Pawn(this, color));
             }
-        }
-
-        // Add move listener
-        for (BaseChessPiece chessPiece : this.getChessPieces()) {
-            chessPiece.addChessPieceMoveListener(this::onChessPieceMoved);
-            chessPiece.addChessPieceEatenListener(this::onChessPieceEaten);
         }
     }
 
@@ -91,13 +85,63 @@ public class Game {
     }
 
     /**
-     * Get all chess chess pieces
+     * Get all chess piece
      *
-     * @return All player 2 chess chess pieces
+     * @return all chess piece
      */
-    public BaseChessPiece[] getChessPieces() {
-        return Stream.concat(Arrays.stream(whiteChessPieces), Arrays.stream(blackChessPieces))
-                .toArray(BaseChessPiece[]::new);
+    public HashMap<Pos, BaseChessPiece> getChessPieces() {
+        HashMap<Pos, BaseChessPiece> allChessPiece = new HashMap<>();
+        allChessPiece.putAll(whiteChessPieces);
+        allChessPiece.putAll(blackChessPieces);
+        return (HashMap<Pos, BaseChessPiece>) allChessPiece.clone();
+    }
+
+    /**
+     * Move chess piece
+     *
+     * @param previousPosition The previous position
+     * @param nextPosition     The next position
+     * @throws Exception If invalid move
+     */
+    public void move(Pos previousPosition, Pos nextPosition) throws Exception {
+        BaseChessPiece chessPiece = null;
+
+        if (this.whiteChessPieces.containsKey(previousPosition)) {
+            chessPiece = this.whiteChessPieces.get(previousPosition);
+        } else if (this.blackChessPieces.containsKey(previousPosition)) {
+            chessPiece = this.blackChessPieces.get(previousPosition);
+        }
+
+        if (chessPiece == null) {
+            throw new Exception("No chess piece here");
+        }
+
+        if (!chessPiece.canMove(previousPosition, nextPosition)) {
+            throw new Exception("This chess piece can't move");
+        }
+
+        HashMap<Pos, BaseChessPiece> playerChessPieces = this.blackChessPieces;
+        if (chessPiece.getChessColor().equals(ChessColor.WHITE)) {
+            playerChessPieces = this.whiteChessPieces;
+        }
+
+        ChessColor opposing = ChessColor.WHITE;
+        if (chessPiece.getChessColor().equals(ChessColor.WHITE)) {
+            opposing = ChessColor.BLACK;
+        }
+
+        playerChessPieces.remove(previousPosition);
+        getChessPieces(opposing).remove(nextPosition);
+        playerChessPieces.put(nextPosition, chessPiece);
+
+        if (this.colorTurn.equals(ChessColor.WHITE)) {
+            this.colorTurn = ChessColor.BLACK;
+        } else {
+            this.colorTurn = ChessColor.WHITE;
+        }
+
+        gameStates.add(new GameState(whiteChessPieces, blackChessPieces, colorTurn));
+        updateGameStatus();
     }
 
     /**
@@ -106,41 +150,11 @@ public class Game {
      * @param color The color of chess pieces
      * @return All chess pieces by color
      */
-    public BaseChessPiece[] getChessPieces(ChessColor color) {
+    public HashMap<Pos, BaseChessPiece> getChessPieces(ChessColor color) {
         if (color.equals(ChessColor.WHITE)) {
-            return whiteChessPieces.clone();
+            return (HashMap<Pos, BaseChessPiece>) whiteChessPieces.clone();
         } else {
-            return blackChessPieces.clone();
-        }
-    }
-
-    /**
-     * Change the player turn
-     * Invoked when chess move
-     *
-     * @param chessPiece moved chess piece
-     */
-    public void onChessPieceMoved(BaseChessPiece chessPiece) {
-        if (colorTurn.equals(ChessColor.WHITE)) {
-            colorTurn = ChessColor.BLACK;
-        } else {
-            colorTurn = ChessColor.WHITE;
-        }
-        gameStates.add(new GameState(whiteChessPieces, blackChessPieces, colorTurn));
-    }
-
-    /**
-     * Piece is eaten, check if win
-     *
-     * @param chessPiece Eaten chess piece
-     */
-    public void onChessPieceEaten(BaseChessPiece chessPiece) {
-        if (chessPiece instanceof King) {
-            if (chessPiece.getChessColor().equals(ChessColor.WHITE)) {
-                gameStatus = GameStatus.BLACK_WIN;
-            } else {
-                gameStatus = GameStatus.WHITE_WIN;
-            }
+            return (HashMap<Pos, BaseChessPiece>) blackChessPieces.clone();
         }
     }
 
@@ -155,6 +169,27 @@ public class Game {
             this.colorTurn = gameState.getColorTurn();
             this.whiteChessPieces = gameState.getWhiteChessPieces();
             this.blackChessPieces = gameState.getBlackChessPieces();
+        }
+    }
+
+    /**
+     * Update the current game status
+     */
+    private void updateGameStatus() {
+        for (ChessColor color : ChessColor.values()) {
+            boolean kingIsDead = true;
+            for (Map.Entry<Pos, BaseChessPiece> entrySet : this.getChessPieces(color).entrySet()) {
+                if (entrySet.getValue() instanceof King) {
+                    kingIsDead = false;
+                    break;
+                }
+            }
+
+            if (kingIsDead && color.equals(ChessColor.WHITE)) {
+                gameStatus = GameStatus.BLACK_WIN;
+            } else if (kingIsDead && color.equals(ChessColor.BLACK)) {
+                gameStatus = GameStatus.WHITE_WIN;
+            }
         }
     }
 

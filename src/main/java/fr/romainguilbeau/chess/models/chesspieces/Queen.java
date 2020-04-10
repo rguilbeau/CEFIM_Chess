@@ -1,7 +1,7 @@
 package fr.romainguilbeau.chess.models.chesspieces;
 
-import fr.romainguilbeau.chess.models.game.ChessPosition;
 import fr.romainguilbeau.chess.models.game.Game;
+import fr.romainguilbeau.chess.models.game.Pos;
 
 import java.net.URL;
 import java.security.InvalidParameterException;
@@ -12,8 +12,8 @@ public class Queen extends BaseChessPiece {
     /**
      * {@inheritDoc}
      */
-    public Queen(Game game, ChessPosition position, Game.ChessColor chessColor) throws InvalidParameterException {
-        super(game, position, chessColor);
+    public Queen(Game game, Game.ChessColor chessColor) throws InvalidParameterException {
+        super(game, chessColor);
     }
 
     /**
@@ -36,12 +36,12 @@ public class Queen extends BaseChessPiece {
      * {@inheritDoc}
      */
     @Override
-    protected ArrayList<ChessPosition> findChessPieceMove() {
-        ArrayList<ChessPosition> validMoves = new ArrayList<>();
+    protected ArrayList<Pos> findChessPieceMove() {
+        ArrayList<Pos> validMoves = new ArrayList<>();
 
-        for (int x = 0; x < ChessPosition.BOARD_SIZE.x; x++) {
-            for (int y = 0; y < ChessPosition.BOARD_SIZE.y; y++) {
-                validMoves.add(new ChessPosition(x, y));
+        for (int x = 0; x < Pos.BOARD_SIZE.x; x++) {
+            for (int y = 0; y < Pos.BOARD_SIZE.y; y++) {
+                validMoves.add(new Pos(x, y));
             }
         }
         return validMoves;

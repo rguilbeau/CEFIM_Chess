@@ -1,8 +1,8 @@
 package fr.romainguilbeau.chess.controllers;
 
 import fr.romainguilbeau.chess.models.chesspieces.BaseChessPiece;
-import fr.romainguilbeau.chess.models.game.ChessPosition;
 import fr.romainguilbeau.chess.models.game.Game;
+import fr.romainguilbeau.chess.models.game.Pos;
 import fr.romainguilbeau.chess.utils.BoardCell;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -15,6 +15,7 @@ import javafx.scene.layout.HBox;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -80,9 +81,9 @@ public class MainController implements Initializable {
 
         // Create the board grid
         int darkCell = 0;
-        for (int row = 0; row < ChessPosition.BOARD_SIZE.x; row++) {
-            for (int col = 0; col < ChessPosition.BOARD_SIZE.y; col++) {
-                BoardCell boardCell = new BoardCell(new ChessPosition(col, row), darkCell % 2 == 0);
+        for (int row = 0; row < Pos.BOARD_SIZE.x; row++) {
+            for (int col = 0; col < Pos.BOARD_SIZE.y; col++) {
+                BoardCell boardCell = new BoardCell(new Pos(col, row), darkCell % 2 == 0);
                 // Add listener for selects and moves
                 boardCell.setOnMouseClicked(event -> onBoardCellClicked((BoardCell) event.getSource()));
                 gridPaneChessBoard.add(boardCell, col, row);
@@ -101,16 +102,9 @@ public class MainController implements Initializable {
 
         cleanBoardCells();
 
-        ObservableList<Node> nodes = gridPaneChessBoard.getChildren();
-        for (BaseChessPiece chessPiece : game.getChessPieces()) {
-            Optional<ChessPosition> optionalPos = chessPiece.getPosition();
-
-            if (optionalPos.isEmpty()) {
-                continue;
-            }
-
-            BoardCell boardCell = findBoardCellAtPosition(optionalPos.get());
-            boardCell.setChessPiece(chessPiece);
+        for (Map.Entry<Pos, BaseChessPiece> entrySet : game.getChessPieces().entrySet()) {
+            BoardCell boardCell = findBoardCellAtPosition(entrySet.getKey());
+            boardCell.setChessPiece(entrySet.getValue());
         }
         updateUIPlayerTurnLabel();
     }
@@ -138,12 +132,9 @@ public class MainController implements Initializable {
 
         cleanBoardCells();
 
-        for (BaseChessPiece chessPiece : game.getChessPieces()) {
-            Optional<ChessPosition> optionalPos = chessPiece.getPosition();
-            if (optionalPos.isPresent()) {
-                BoardCell boardCell = findBoardCellAtPosition(optionalPos.get());
-                boardCell.setChessPiece(chessPiece);
-            }
+        for (Map.Entry<Pos, BaseChessPiece> entrySet : game.getChessPieces().entrySet()) {
+            BoardCell boardCell = findBoardCellAtPosition(entrySet.getKey());
+            boardCell.setChessPiece(entrySet.getValue());
         }
 
         updateUIPlayerTurnLabel();
@@ -161,9 +152,9 @@ public class MainController implements Initializable {
                 && boardCell.getChessPiece().get().getChessColor().equals(game.getColorTurn())) {
 
             BaseChessPiece chessPiece = boardCell.getChessPiece().get();
-            ArrayList<ChessPosition> validPositions = chessPiece.findValidMove();
+            ArrayList<Pos> validPositions = chessPiece.findValidMove();
 
-            for (ChessPosition validPosition : validPositions) {
+            for (Pos validPosition : validPositions) {
                 BoardCell newBoardCell = findBoardCellAtPosition(validPosition);
                 newBoardCell.setHighlight(true);
             }
@@ -183,11 +174,11 @@ public class MainController implements Initializable {
             BoardCell focusedCell = optionalFocusedCell.get();
             BaseChessPiece chessPiece = focusedCell.getChessPiece().get();
 
-            ChessPosition newPosition = boardCell.getPosition();
+            Pos newPosition = boardCell.getPosition();
             boolean unsetFocus = true;
 
             try {
-                chessPiece.move(newPosition);
+                game.move(focusedCell.getPosition(), newPosition);
                 focusedCell.removeChessPiece();
 
                 BoardCell newBoardCell = findBoardCellAtPosition(newPosition);
@@ -221,9 +212,9 @@ public class MainController implements Initializable {
      * @return the board cell
      * @throws IndexOutOfBoundsException if invalid index
      */
-    private BoardCell findBoardCellAtPosition(ChessPosition position) throws IndexOutOfBoundsException {
+    private BoardCell findBoardCellAtPosition(Pos position) throws IndexOutOfBoundsException {
         ObservableList<Node> nodes = gridPaneChessBoard.getChildren();
-        int newIndex = (position.y * ChessPosition.BOARD_SIZE.x) + position.x;
+        int newIndex = (position.getY() * Pos.BOARD_SIZE.x) + position.getX();
         Node newBoardCell = nodes.get(newIndex);
 
         if (newBoardCell instanceof BoardCell) {

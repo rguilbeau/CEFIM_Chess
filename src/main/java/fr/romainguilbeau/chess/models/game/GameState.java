@@ -3,6 +3,7 @@ package fr.romainguilbeau.chess.models.game;
 import fr.romainguilbeau.chess.models.chesspieces.BaseChessPiece;
 
 import java.security.InvalidParameterException;
+import java.util.HashMap;
 
 /**
  * Represents the games at a given time
@@ -12,11 +13,11 @@ public class GameState {
     /**
      * Copy of all player one chess piece
      */
-    private final BaseChessPiece[] blackChessPieces;
+    private final HashMap<Pos, BaseChessPiece> blackChessPieces;
     /**
      * Copy of all player two chess piece
      */
-    private final BaseChessPiece[] whiteChessPieces;
+    private final HashMap<Pos, BaseChessPiece> whiteChessPieces;
     /**
      * Player turn
      */
@@ -29,19 +30,19 @@ public class GameState {
      * @param blackChessPieces all player two chess piece
      * @param colorTurn        Player turn
      */
-    public GameState(BaseChessPiece[] whiteChessPieces, BaseChessPiece[] blackChessPieces, Game.ChessColor colorTurn) {
+    public GameState(HashMap<Pos, BaseChessPiece> whiteChessPieces, HashMap<Pos, BaseChessPiece> blackChessPieces, Game.ChessColor colorTurn) {
         if (colorTurn == null || whiteChessPieces == null || blackChessPieces == null) {
             throw new NullPointerException("Invalid game state");
         }
 
-        if (whiteChessPieces.length != 16 || blackChessPieces.length != 16) {
+        if (whiteChessPieces.size() != 16 || blackChessPieces.size() != 16) {
             throw new InvalidParameterException("Invalid game state");
         }
 
         this.colorTurn = colorTurn;
 
-        this.whiteChessPieces = copy(whiteChessPieces);
-        this.blackChessPieces = copy(blackChessPieces);
+        this.whiteChessPieces = (HashMap<Pos, BaseChessPiece>) whiteChessPieces.clone();
+        this.blackChessPieces = (HashMap<Pos, BaseChessPiece>) blackChessPieces.clone();
     }
 
     /**
@@ -58,8 +59,8 @@ public class GameState {
      *
      * @return all white chess pieces copy
      */
-    public BaseChessPiece[] getWhiteChessPieces() {
-        return copy(whiteChessPieces);
+    public HashMap<Pos, BaseChessPiece> getWhiteChessPieces() {
+        return (HashMap<Pos, BaseChessPiece>) whiteChessPieces.clone();
     }
 
     /**
@@ -67,23 +68,7 @@ public class GameState {
      *
      * @return all black chess pieces copy
      */
-    public BaseChessPiece[] getBlackChessPieces() {
-        return copy(blackChessPieces);
-    }
-
-    /**
-     * Deep copy of chess pieces
-     *
-     * @param chessPieces chess pieces to copy
-     * @return copy of chess pieces
-     */
-    private BaseChessPiece[] copy(BaseChessPiece[] chessPieces) {
-        BaseChessPiece[] copy = new BaseChessPiece[chessPieces.length];
-
-        for (int i = 0; i < chessPieces.length; i++) {
-            copy[i] = (BaseChessPiece) chessPieces[i].clone();
-        }
-
-        return copy;
+    public HashMap<Pos, BaseChessPiece> getBlackChessPieces() {
+        return (HashMap<Pos, BaseChessPiece>) blackChessPieces.clone();
     }
 }

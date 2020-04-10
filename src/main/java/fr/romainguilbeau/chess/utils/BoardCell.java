@@ -2,7 +2,7 @@ package fr.romainguilbeau.chess.utils;
 
 
 import fr.romainguilbeau.chess.models.chesspieces.BaseChessPiece;
-import fr.romainguilbeau.chess.models.game.ChessPosition;
+import fr.romainguilbeau.chess.models.game.Pos;
 import javafx.beans.binding.Bindings;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -52,7 +52,7 @@ public class BoardCell extends BorderPane {
     /**
      * The cell position
      */
-    private ChessPosition position;
+    private Pos position;
 
     /**
      * Create new cell on the game board
@@ -60,7 +60,7 @@ public class BoardCell extends BorderPane {
      * @param position The cell position
      * @param isDark   true if cell is dark
      */
-    public BoardCell(ChessPosition position, boolean isDark) {
+    public BoardCell(Pos position, boolean isDark) {
         if (position == null) {
             throw new NullPointerException();
         }
@@ -113,8 +113,8 @@ public class BoardCell extends BorderPane {
      *
      * @return The cell position
      */
-    public ChessPosition getPosition() {
-        return (ChessPosition) this.position.clone();
+    public Pos getPosition() {
+        return this.position;
     }
 
     /**
